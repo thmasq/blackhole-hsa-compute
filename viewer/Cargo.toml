@@ -1,0 +1,25 @@
+[package]
+name = "blackhole-viewer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+winit = { version = "0.30", features = ["wayland", "wayland-dlopen"] }
+wgpu = { version = "24.0", features = ["webgl"] }
+pollster = "0.4"
+raw-window-handle = "0.6"
+bytemuck = { version = "1.22", features = ["derive"] }
+env_logger = "0.11"
+log = "0.4"
+anyhow = "1.0"
+libc = "0.2"
+
+[build-dependencies]
+pkg-config = "0.3"
+
+[profile.dev]
+opt-level = 1  # Some optimization for better GPU performance in debug
+
+[profile.release]
+lto = true
+codegen-units = 1
