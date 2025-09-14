@@ -37,9 +37,6 @@ extern fn @"llvm.amdgcn.log.f32"(f32) f32;
 extern fn @"llvm.amdgcn.exp2.f32"(f32) f32;
 extern fn @"llvm.amdgcn.sqrt.f32"(f32) f32;
 
-// Floating point classification
-extern fn @"llvm.is.fpclass.f32"(f32, i32) i32;
-
 // Constants
 const PI: f32 = 0x1.921fb6p+1;
 const PI_2: f32 = 0x1.921fb6p+0;
@@ -81,19 +78,27 @@ inline fn mad(a: f32, b: f32, c: f32) f32 {
 }
 
 inline fn isFinite(x: f32) bool {
-    return @"llvm.is.fpclass.f32"(x, CLASS_NNOR | CLASS_NSUB | CLASS_NZER | CLASS_PZER | CLASS_PSUB | CLASS_PNOR) != 0;
+    const bits = asUint(x);
+    const exp_bits = (bits >> 23) & 0xFF;
+    return exp_bits != 0xFF;
 }
 
 inline fn isInf(x: f32) bool {
-    return @"llvm.is.fpclass.f32"(x, CLASS_NINF | CLASS_PINF) != 0;
+    const bits = asUint(x);
+    const abs_bits = bits & 0x7FFFFFFF;
+    return abs_bits == 0x7F800000;
 }
 
 inline fn isNan(x: f32) bool {
-    return @"llvm.is.fpclass.f32"(x, CLASS_SNAN | CLASS_QNAN) != 0;
+    const bits = asUint(x);
+    const abs_bits = bits & 0x7FFFFFFF;
+    return abs_bits > 0x7F800000;
 }
 
 inline fn isNormal(x: f32) bool {
-    return @"llvm.is.fpclass.f32"(x, CLASS_NNOR | CLASS_PNOR) != 0;
+    const bits = asUint(x);
+    const exp_bits = (bits >> 23) & 0xFF;
+    return (exp_bits != 0) and (exp_bits != 0xFF);
 }
 
 inline fn signBit(x: f32) bool {
